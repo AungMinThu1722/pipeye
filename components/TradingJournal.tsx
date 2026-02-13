@@ -162,14 +162,14 @@ const TradingJournal: React.FC<TradingJournalProps> = ({ isDarkMode }) => {
             id: crypto.randomUUID(),
             date: finalDate,
             pair: keys['pair'] || keys['symbol'] || keys['asset'] || 'EUR/USD',
-            type: (keys['type'] || keys['direction'] || 'BUY').toUpperCase() === 'SELL' ? 'SELL' : 'BUY',
+            type: ((keys['type'] || keys['direction'] || 'BUY').toUpperCase() === 'SELL' ? 'SELL' : 'BUY') as 'BUY' | 'SELL',
             entryPrice: parseFloat(keys['entry'] || keys['entry price'] || keys['open'] || '0'),
             exitPrice: parseFloat(keys['exit'] || keys['exit price'] || keys['close'] || '0'),
             outcome: (keys['outcome'] || keys['result'] || 'WIN').toUpperCase() as 'WIN' | 'LOSS' | 'BE',
             notes: keys['notes'] || keys['comments'] || 'Imported from Excel',
             screenshots: []
           };
-        }).filter(t => t.entryPrice > 0 && t.exitPrice > 0); // Basic validation
+        }).filter((t: TradeLog) => t.entryPrice > 0 && t.exitPrice > 0); // Basic validation
 
         if (importedTrades.length > 0) {
           setTrades(prev => [...importedTrades, ...prev]);
@@ -297,7 +297,7 @@ const TradingJournal: React.FC<TradingJournalProps> = ({ isDarkMode }) => {
             </span>
             {stats.totalPnL !== 0 && (
               <span className={`text-sm font-bold flex items-center gap-1 ${stats.totalPnL > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                {stats.totalPnL > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                {stats.totalPnL > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" /> }
                 {(STARTING_BALANCE > 0 ? (stats.totalPnL / STARTING_BALANCE) * 100 : 0).toFixed(2)}%
               </span>
             )}
