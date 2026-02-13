@@ -1,0 +1,5 @@
+{
+  "name": "PIPEYE",
+  "description": "A high-performance forex candlestick pattern detection dashboard with real-time alerts, TradingView integration, and custom recognition engine.",
+  "requestFramePermissions": []
+}
