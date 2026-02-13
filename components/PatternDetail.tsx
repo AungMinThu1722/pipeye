@@ -134,12 +134,10 @@ const PatternDetail: React.FC<PatternDetailProps> = ({ detection, relatedPattern
     const fetchAIAnalysis = async () => {
       setIsAiLoading(true);
       try {
-        // Fix: Use process.env.API_KEY directly from the execution context as specified in guidelines
         if (!process.env.API_KEY) {
            throw new Error("API Key configuration missing");
         }
 
-        // Fix: Always initialize GoogleGenAI with { apiKey: process.env.API_KEY }
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const prompt = `As a professional Forex technical analyst, analyze this setup:
         - Pair: ${detection.pair}
@@ -153,23 +151,40 @@ const PatternDetail: React.FC<PatternDetailProps> = ({ detection, relatedPattern
         3. **Risk Note**: One specific thing to watch out for with this pair/pattern combo.
         Keep the response professional and under 150 words.`;
 
-        // Fix: Update to 'gemini-3-pro-preview' for complex reasoning/technical analysis tasks
         const response = await ai.models.generateContent({
           model: 'gemini-3-pro-preview', 
           contents: prompt,
         });
-        // Fix: Access response.text directly (property, not a method)
+        
         setAiAnalysis(response.text || 'Unable to generate analysis at this time.');
       } catch (error: any) {
         console.error('AI Error:', error);
-        setAiAnalysis(`AI Insight unavailable: ${error.message || 'Connection failed'}. Please check your system configuration.`);
+        
+        // Robust Error Handling for 429/Quota issues
+        if (error.message?.includes('429') || error.toString().includes('429') || error.toString().includes('RESOURCE_EXHAUSTED')) {
+          setAiAnalysis(`[System Notice: AI Cloud Quota Reached]
+          
+FALLBACK ANALYSIS for ${detection.pattern}:
+
+1. SENTIMENT
+${isBullishSignal ? 'Buyers are stepping in. Rejection of lower prices suggests potential reversal upside.' : 'Sellers are dominating. Rejection of higher prices suggests continuation or reversal downside.'}
+
+2. STRATEGY
+- Conservative: Wait for the next candle to close ${isBullishSignal ? 'green' : 'red'} for confirmation.
+- Aggressive: Enter on break of ${isBullishSignal ? 'high' : 'low'}.
+
+3. RISK MANAGEMENT
+Place Stop Loss ${isBullishSignal ? 'below the low' : 'above the high'} of the pattern structure.`);
+        } else {
+          setAiAnalysis(`AI Insight unavailable: ${error.message || 'Connection failed'}. Please check your internet connection.`);
+        }
       } finally {
         setIsAiLoading(false);
       }
     };
 
     fetchAIAnalysis();
-  }, [detection]);
+  }, [detection, isBullishSignal]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300">
